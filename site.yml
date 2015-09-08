@@ -1,0 +1,112 @@
+---
+# file: site.yml
+
+- name: setup play
+  hosts: trusty64.vagrant.dev
+  gather_facts: yes
+
+  vars:
+    influxdb_dir_config: '/etc/influxdb'
+    influxdb_config_file: "{{ influxdb_dir_config }}/influxdb.conf"
+
+    influxdb_dir_default: '/etc/default'
+    influxdb_default_file: "{{ influxdb_dir_default }}/influxdb"
+
+    influxdb_dir_data: "{{ ansible_env.HOME }}/.influxdb"
+
+    influxdb_dir_run: '/var/run/influxdb'
+
+  tasks:
+    - name: download InfluxDB 0.9.3
+      get_url:
+        url=https://s3.amazonaws.com/influxdb/influxdb_0.9.3_amd64.deb
+        dest=/usr/local/src/influxdb_0.9.3_amd64.deb
+        owner=vagrant group=vagrant mode=0440
+      sudo: yes
+
+    - name: install InfluxDB 0.9.3
+      apt:
+        deb=/usr/local/src/influxdb_0.9.3_amd64.deb
+      sudo: yes
+
+    - name: ensure InfluxDB config directory exists
+      file:
+        path="{{ influxdb_dir_config }}"
+        state=directory
+        owner=root group=root mode=0755
+      sudo: yes
+
+    - name: ensure InfluxDB configuration file integrity
+      template:
+        src="templates/{{ influxdb_config_file }}.j2"
+        dest="{{ influxdb_config_file }}"
+        owner=root group=root mode=0644
+      sudo: yes
+
+    - name: ensure InfluxDB default settings directory exists
+      file:
+        path="{{ influxdb_dir_default }}"
+        state=directory
+        owner=root group=root mode=0755
+      sudo: yes
+
+    - name: ensure InfluxDB default settings file integrity
+      template:
+        src="templates/{{ influxdb_default_file }}.j2"
+        dest="{{ influxdb_default_file }}"
+        owner=root group=root mode=0644
+      sudo: yes
+
+    - name: ensure InfluxDB data directory exists
+      file:
+        path="{{ influxdb_dir_data }}"
+        state=directory
+        owner=vagrant group=vagrant mode=0755
+      sudo: yes
+
+    - name: ensure InfluxDB run directory exists
+      file:
+        path="{{ influxdb_dir_run }}"
+        state=directory
+        owner=vagrant group=vagrant mode=0755
+      sudo: yes
+
+    - name: ensure InfluxDB init file integrity
+      template:
+        src=templates/etc/init.d/influxdb.j2
+        dest=/etc/init.d/influxdb
+        owner=root group=root mode=0755
+      sudo: yes
+
+    - name: ensure InfluxDB is running
+      service:
+        name=influxdb
+        state=running
+      sudo: yes
+
+    - name: install Grafana dependencies
+      apt:
+        name="{{ item }}"
+        state=latest
+      sudo: yes
+      with_items:
+        - adduser
+        - libfontconfig
+
+    - name: download Grafana 2.1.3
+      get_url:
+        url=https://grafanarel.s3.amazonaws.com/builds/grafana_2.1.3_amd64.deb
+        dest=/usr/local/src/grafana_2.1.3_amd64.deb
+        owner=vagrant group=vagrant mode=0440
+      sudo: yes
+
+    - name: install Grafana 2.1.3
+      apt:
+        deb=/usr/local/src/grafana_2.1.3_amd64.deb
+      sudo: yes
+
+    - name: ensure Grafana is running
+      service:
+        name=grafana-server
+        state=running
+      sudo: yes
