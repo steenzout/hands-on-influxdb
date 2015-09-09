@@ -2,7 +2,9 @@
 
 [![License](https://img.shields.io/badge/license-CC0_1.0_Universal-blue.svg?style=flat)](https://raw.githubusercontent.com/steenzout/hands-on-influxdb/master/LICENSE)
 
-Code for part of the Hands-on InfluxDB presentation given on the 8th September 2015 @ OC Tanner.
+Code for part of the
+[InfluxDB & Grafana](http://www.slideshare.net/steenzout/influxdb-grafana) presentation given on
+the 8th September 2015 @ OC Tanner.
 
 ```
 $ virtualenv env
